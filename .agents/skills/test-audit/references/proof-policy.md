@@ -4,12 +4,23 @@
 
 - Read the repository's [AGENTS.md](../../../../AGENTS.md) and applicable scoped
   instructions before editing. Use the commands actually present in package.json.
-- Build before running focused tests: `npm run build`, then
-  `node --test tests/<owner>.test.js`. Tests load compiled modules from
-  `.homeybuild`; do not test stale build output.
+- Clean generated output before compiling for focused tests. From the repository
+  root, after confirming no test, build, or `homey app run` process is using this
+  checkout, run:
+
+  ```sh
+  node -e "require('node:fs').rmSync('.homeybuild', { recursive: true, force: true })"
+  npm run build
+  node --test tests/<owner>.test.js
+  ```
+
+  Tests load compiled modules from `.homeybuild`. `tsc` does not remove old output
+  when a source file is renamed or deleted, so compiling alone can falsely pass
+  against stale modules. Never delete output used by an active process or stop
+  an unrelated process to make this cleanup possible.
 - For runtime changes, run the relevant owner and sibling tests. `npm test`
   builds and runs the current `tests/*.test.js` suite when full local proof is
-  appropriate for the change.
+  appropriate for the change; perform the same cleanup first.
 - Run `npm run lint` for code changes. Compare failures with the baseline and
   report existing versus introduced errors; do not weaken checks to get green.
 - Driver metadata or packaging changes also need `homey app build` and
