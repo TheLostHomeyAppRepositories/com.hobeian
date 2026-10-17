@@ -19,6 +19,10 @@ import { DP_HANDLERS, DP_WRITE, DEFAULTS } from '../../lib/zg303zDatapoints';
 
 module.exports = class ZG303ZDevice extends ZigBeeDevice {
 
+  protected datapointHandlers = DP_HANDLERS;
+  protected writeDatapoints: Record<keyof typeof DP_WRITE, number> = DP_WRITE;
+  protected deriveWaterAlarmFromSoilMoisture = true;
+
   private tuyaCluster: any = null;
   private lastSoilMoisturePercent?: number;
   private pendingSettingsApply = false;
@@ -108,14 +112,14 @@ module.exports = class ZG303ZDevice extends ZigBeeDevice {
     const soilCalibration = toTuyaPercentCalibration(this.getSetting('soil_calibration') ?? DEFAULTS.CALIBRATION);
 
     // Best-effort: device may be sleeping; will apply on next awake/report window.
-    await this.tuyaCluster.setDatapointEnum?.(DP_WRITE.TEMP_UNIT, 0); // enforce Celsius
-    await this.tuyaCluster.setDatapointValue(DP_WRITE.TEMP_SAMPLING_INTERVAL, temperatureSampling);
-    await this.tuyaCluster.setDatapointValue(DP_WRITE.SOIL_SAMPLING_INTERVAL, soilSampling);
-    await this.tuyaCluster.setDatapointValue(DP_WRITE.SOIL_WARNING_THRESHOLD, soilWarning);
+    await this.tuyaCluster.setDatapointEnum?.(this.writeDatapoints.TEMP_UNIT, 0); // enforce Celsius
+    await this.tuyaCluster.setDatapointValue(this.writeDatapoints.TEMP_SAMPLING_INTERVAL, temperatureSampling);
+    await this.tuyaCluster.setDatapointValue(this.writeDatapoints.SOIL_SAMPLING_INTERVAL, soilSampling);
+    await this.tuyaCluster.setDatapointValue(this.writeDatapoints.SOIL_WARNING_THRESHOLD, soilWarning);
 
-    await this.tuyaCluster.setDatapointValue(DP_WRITE.TEMP_CALIBRATION, temperatureCalibrationTenths);
-    await this.tuyaCluster.setDatapointValue(DP_WRITE.HUMIDITY_CALIBRATION, humidityCalibration);
-    await this.tuyaCluster.setDatapointValue(DP_WRITE.SOIL_CALIBRATION, soilCalibration);
+    await this.tuyaCluster.setDatapointValue(this.writeDatapoints.TEMP_CALIBRATION, temperatureCalibrationTenths);
+    await this.tuyaCluster.setDatapointValue(this.writeDatapoints.HUMIDITY_CALIBRATION, humidityCalibration);
+    await this.tuyaCluster.setDatapointValue(this.writeDatapoints.SOIL_CALIBRATION, soilCalibration);
 
     this.log('Applied device settings via Tuya DPs', {
       temperatureSampling,
@@ -250,7 +254,7 @@ module.exports = class ZG303ZDevice extends ZigBeeDevice {
    * Process a Tuya datapoint value using the DP_HANDLERS mapping table
    */
   private processDataPoint(dp: number, datatype: number, data: Buffer) {
-    const mapping = DP_HANDLERS[dp];
+    const mapping = this.datapointHandlers[dp];
     
     if (!mapping) {
       this.log(`Unknown DP ${dp} (type: ${datatype})`);
@@ -288,15 +292,17 @@ module.exports = class ZG303ZDevice extends ZigBeeDevice {
             this.setCapabilityValue('measure_soil_moisture', soilMoisture).catch(this.error);
           }
 
-          // Fallback: local alarm derived from threshold setting
-          const threshold = this.getSetting('soil_warning') ?? DEFAULTS.SOIL_WARNING_PERCENT;
-          const alarm = computeWaterAlarmFromSoilMoisture({
-            soilMoisturePercent: soilMoisture,
-            thresholdPercent: threshold,
-          });
-          this.log(`Setting water alarm to ${alarm} (threshold ${threshold}%)`);
-          if (this.hasCapability('alarm_water')) {
-            this.setCapabilityValue('alarm_water', alarm).catch(this.error);
+          // Some models use a hardware alarm instead of this local fallback.
+          if (this.deriveWaterAlarmFromSoilMoisture) {
+            const threshold = this.getSetting('soil_warning') ?? DEFAULTS.SOIL_WARNING_PERCENT;
+            const alarm = computeWaterAlarmFromSoilMoisture({
+              soilMoisturePercent: soilMoisture,
+              thresholdPercent: threshold,
+            });
+            this.log(`Setting water alarm to ${alarm} (threshold ${threshold}%)`);
+            if (this.hasCapability('alarm_water')) {
+              this.setCapabilityValue('alarm_water', alarm).catch(this.error);
+            }
           }
         }
         break;
@@ -380,22 +386,22 @@ module.exports = class ZG303ZDevice extends ZigBeeDevice {
         const value = newSettings[key];
         try {
           if (key === 'temperature_sampling') {
-            await this.tuyaCluster.setDatapointValue(DP_WRITE.TEMP_SAMPLING_INTERVAL, toTuyaSamplingSeconds(value ?? DEFAULTS.SAMPLING_SECONDS));
+            await this.tuyaCluster.setDatapointValue(this.writeDatapoints.TEMP_SAMPLING_INTERVAL, toTuyaSamplingSeconds(value ?? DEFAULTS.SAMPLING_SECONDS));
           }
           if (key === 'soil_sampling') {
-            await this.tuyaCluster.setDatapointValue(DP_WRITE.SOIL_SAMPLING_INTERVAL, toTuyaSamplingSeconds(value ?? DEFAULTS.SAMPLING_SECONDS));
+            await this.tuyaCluster.setDatapointValue(this.writeDatapoints.SOIL_SAMPLING_INTERVAL, toTuyaSamplingSeconds(value ?? DEFAULTS.SAMPLING_SECONDS));
           }
           if (key === 'soil_warning') {
-            await this.tuyaCluster.setDatapointValue(DP_WRITE.SOIL_WARNING_THRESHOLD, toTuyaSoilWarningThresholdPercent(value ?? DEFAULTS.SOIL_WARNING_PERCENT));
+            await this.tuyaCluster.setDatapointValue(this.writeDatapoints.SOIL_WARNING_THRESHOLD, toTuyaSoilWarningThresholdPercent(value ?? DEFAULTS.SOIL_WARNING_PERCENT));
           }
           if (key === 'temperature_calibration') {
-            await this.tuyaCluster.setDatapointValue(DP_WRITE.TEMP_CALIBRATION, toTuyaTemperatureCalibrationTenths(value ?? DEFAULTS.CALIBRATION));
+            await this.tuyaCluster.setDatapointValue(this.writeDatapoints.TEMP_CALIBRATION, toTuyaTemperatureCalibrationTenths(value ?? DEFAULTS.CALIBRATION));
           }
           if (key === 'humidity_calibration') {
-            await this.tuyaCluster.setDatapointValue(DP_WRITE.HUMIDITY_CALIBRATION, toTuyaPercentCalibration(value ?? DEFAULTS.CALIBRATION));
+            await this.tuyaCluster.setDatapointValue(this.writeDatapoints.HUMIDITY_CALIBRATION, toTuyaPercentCalibration(value ?? DEFAULTS.CALIBRATION));
           }
           if (key === 'soil_calibration') {
-            await this.tuyaCluster.setDatapointValue(DP_WRITE.SOIL_CALIBRATION, toTuyaPercentCalibration(value ?? DEFAULTS.CALIBRATION));
+            await this.tuyaCluster.setDatapointValue(this.writeDatapoints.SOIL_CALIBRATION, toTuyaPercentCalibration(value ?? DEFAULTS.CALIBRATION));
           }
         } catch (err) {
           this.error('Failed to apply setting to device:', err);
@@ -403,8 +409,8 @@ module.exports = class ZG303ZDevice extends ZigBeeDevice {
       }
     }
 
-    // Always recompute local alarm immediately (doesn't require device communication)
-    if (changedKeys.includes('soil_warning')) {
+    // Only models using the local fallback recompute before hardware confirms.
+    if (this.deriveWaterAlarmFromSoilMoisture && changedKeys.includes('soil_warning')) {
       const value = newSettings['soil_warning'];
       if (typeof this.lastSoilMoisturePercent === 'number') {
         const alarm = computeWaterAlarmFromSoilMoisture({

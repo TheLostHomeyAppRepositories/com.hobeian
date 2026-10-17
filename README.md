@@ -29,6 +29,10 @@ A battery-powered Zigbee soil moisture sensor with temperature and humidity sens
 - Power: 2x AAA batteries
 - Protocol: Tuya Zigbee (Cluster 0xEF00)
 
+### AY-303Z Soil Moisture Sensor (Experimental)
+
+AOYAN variant with soil moisture, temperature, air humidity, battery level, and dry-soil alarm. Select **AY-303Z Soil Sensor (Experimental)** when pairing. Manufacturer identifiers `AOYAN  ` (two trailing spaces) and `AOYAN` are accepted for model `AY-303Z`. This variant uses DP 106 for the dry-soil alarm and DP 9 for the temperature unit; the original ZG-303Z mapping is preserved. Hardware validation is pending.
+
 ## Installation
 
 1. Install the app from the Homey App Store

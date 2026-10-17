@@ -19,5 +19,8 @@
   },
   "1.0.6": {
     "en": "Add ZG-222Z water leak sensor driver"
+  },
+  "1.0.7": {
+    "en": "Add experimental AOYAN AY-303Z soil sensor support with device-specific alarm and temperature-unit datapoints."
   }
 }
