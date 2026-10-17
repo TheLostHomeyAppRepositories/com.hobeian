@@ -10,7 +10,8 @@ declare module 'zigbee-clusters' {
     
     on(event: string, callback: (...args: any[]) => void): void;
     readAttributes(attributes: string[]): Promise<any>;
-    sendFrame(data: { cmdId: number; frameControl?: string[]; data?: Buffer }): Promise<void>;
+    nextSeqNr(): number;
+    sendFrame(data: { cmdId: number; trxSequenceNumber?: number; frameControl?: string[]; data?: Buffer }): Promise<void>;
   }
 
   export class BoundCluster {
