@@ -16,6 +16,7 @@ const TuyaDataTypes = {
 
 // Tuya protocol command IDs
 export const TUYA_CMD = {
+  DATA_REQUEST: 0x00,
   DATA_QUERY: 0x03,
 } as const;
 
@@ -74,29 +75,23 @@ class TuyaSpecificCluster extends Cluster {
     };
   }
 
-  // Declare the dynamically created command method from COMMANDS
-  datapoint!: (args: {
-    status: number;
-    transid: number;
-    dp: number;
-    datatype: number;
-    length: number;
-    data: Buffer;
-  }, opts?: { disableDefaultResponse?: boolean; waitForResponse?: boolean }) => Promise<void>;
-
   // Send a datapoint command to the device
   async sendDatapoint(dp: number, datatype: number, data: Buffer) {
     const transid = Math.floor(Math.random() * 255);
-    // Use the dynamically created datapoint method from COMMANDS
-    // disableDefaultResponse: true to avoid waiting for a response that may not come
-    return this.datapoint({
-      status: 0,
-      transid,
-      dp,
-      datatype,
-      length: data.length,
-      data,
-    }, { disableDefaultResponse: true });
+    // Tuya's length field is big-endian, unlike standard ZCL uint16 fields.
+    const payload = Buffer.alloc(6 + data.length);
+    payload.writeUInt8(0, 0);
+    payload.writeUInt8(transid, 1);
+    payload.writeUInt8(dp, 2);
+    payload.writeUInt8(datatype, 3);
+    payload.writeUInt16BE(data.length, 4);
+    data.copy(payload, 6);
+    return this.sendFrame({
+      cmdId: TUYA_CMD.DATA_REQUEST,
+      trxSequenceNumber: this.nextSeqNr(),
+      frameControl: ['clusterSpecific', 'disableDefaultResponse'],
+      data: payload,
+    });
   }
 
   // Helper to send a boolean value
