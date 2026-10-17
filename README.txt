@@ -1,6 +1,14 @@
-Hobeian adds support for Hobeian Zigbee devices in Homey. This app enables seamless integration of Hobeian sensors into your smart home ecosystem.
+Hobeian connects Hobeian and compatible AOYAN Zigbee sensors to Homey Pro.
 
-The app currently supports the ZG-303Z Soil Moisture Sensor, a battery-powered Zigbee device that monitors soil moisture, temperature, and air humidity. With customizable calibration settings and configurable sampling intervals, you can fine-tune the sensor to match your specific gardening needs and receive alerts when your plants need attention.
+Supported devices:
+- ZG-303Z Soil Sensor: soil moisture, temperature, air humidity, battery level, and dry-soil alarm.
+- AY-303Z Soil Sensor (Experimental): soil moisture, temperature, air humidity, battery level, and dry-soil alarm.
+- ZG-204ZX 24GHz Presence Sensor: presence, illuminance, temperature, humidity, and battery level.
+- ZG-227Z Temperature & Humidity Sensor: temperature, humidity, and battery level.
+- ZG-222Z Water Leak Sensor: water leak, tamper, low-battery alarm, and battery level.
 
-Version 1.0.7 adds experimental AOYAN AY-303Z soil sensor support. Select "AY-303Z Soil Sensor (Experimental)" when adding the device. Please report pairing, readings, alarm, or settings issues while this support is being tested.
+Select your exact device model when pairing. For AOYAN sensors, select "AY-303Z Soil Sensor (Experimental)". Pairing and operation have been reported on three AY-303Z units; dry-soil alarms, calibration, and sampling settings still need explicit hardware confirmation. ZG-204ZX hardware testing is pending.
 
+Battery-powered devices sleep between reports. ZG-204ZX settings changes are queued until the next wake-up and retried after failed writes, including after an app restart.
+
+Requires Homey Pro with Homey 12.4.0 or newer.
