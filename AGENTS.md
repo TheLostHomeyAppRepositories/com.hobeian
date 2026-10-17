@@ -146,6 +146,7 @@ Tuya devices use a proprietary protocol on cluster 0xEF00 (61184).
 
 ## Testing
 
+- When writing, changing, reviewing, or auditing tests, follow the local [test-audit skill](.agents/skills/test-audit/SKILL.md).
 - **Unit tests**: `tests/*.test.js` - Run with `npm test`
 - **Integration testing**: Deploy with `homey app run` and observe logs
 - Logs appear in the terminal with format: `[ManagerDrivers] [Driver:zg-303z] [Device:uuid] message`
