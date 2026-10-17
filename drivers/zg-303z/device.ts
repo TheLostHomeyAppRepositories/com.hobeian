@@ -21,6 +21,7 @@ module.exports = class ZG303ZDevice extends ZigBeeDevice {
 
   protected datapointHandlers = DP_HANDLERS;
   protected writeDatapoints: Record<keyof typeof DP_WRITE, number> = DP_WRITE;
+  protected deriveWaterAlarmFromSoilMoisture = true;
 
   private tuyaCluster: any = null;
   private lastSoilMoisturePercent?: number;
@@ -291,15 +292,17 @@ module.exports = class ZG303ZDevice extends ZigBeeDevice {
             this.setCapabilityValue('measure_soil_moisture', soilMoisture).catch(this.error);
           }
 
-          // Fallback: local alarm derived from threshold setting
-          const threshold = this.getSetting('soil_warning') ?? DEFAULTS.SOIL_WARNING_PERCENT;
-          const alarm = computeWaterAlarmFromSoilMoisture({
-            soilMoisturePercent: soilMoisture,
-            thresholdPercent: threshold,
-          });
-          this.log(`Setting water alarm to ${alarm} (threshold ${threshold}%)`);
-          if (this.hasCapability('alarm_water')) {
-            this.setCapabilityValue('alarm_water', alarm).catch(this.error);
+          // Some models use a hardware alarm instead of this local fallback.
+          if (this.deriveWaterAlarmFromSoilMoisture) {
+            const threshold = this.getSetting('soil_warning') ?? DEFAULTS.SOIL_WARNING_PERCENT;
+            const alarm = computeWaterAlarmFromSoilMoisture({
+              soilMoisturePercent: soilMoisture,
+              thresholdPercent: threshold,
+            });
+            this.log(`Setting water alarm to ${alarm} (threshold ${threshold}%)`);
+            if (this.hasCapability('alarm_water')) {
+              this.setCapabilityValue('alarm_water', alarm).catch(this.error);
+            }
           }
         }
         break;
@@ -406,8 +409,8 @@ module.exports = class ZG303ZDevice extends ZigBeeDevice {
       }
     }
 
-    // Always recompute local alarm immediately (doesn't require device communication)
-    if (changedKeys.includes('soil_warning')) {
+    // Only models using the local fallback recompute before hardware confirms.
+    if (this.deriveWaterAlarmFromSoilMoisture && changedKeys.includes('soil_warning')) {
       const value = newSettings['soil_warning'];
       if (typeof this.lastSoilMoisturePercent === 'number') {
         const alarm = computeWaterAlarmFromSoilMoisture({

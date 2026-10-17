@@ -82,6 +82,58 @@ test('AY-303Z DP106 is an alarm and DP9 does not overwrite it', () => {
   assert.equal(device.values.alarm_water, false);
 });
 
+test('AY-303Z soil reports preserve both hardware alarm states', () => {
+  const device = new AY303ZDevice();
+  device.processDataPoint(106, 1, Buffer.from([1]));
+  report(device, 3, 80);
+  assert.equal(device.values.measure_soil_moisture, 80);
+  assert.equal(device.values.alarm_water, true);
+  device.processDataPoint(106, 1, Buffer.from([0]));
+  report(device, 3, 10);
+  assert.equal(device.values.measure_soil_moisture, 10);
+  assert.equal(device.values.alarm_water, false);
+});
+
+test('AY-303Z soil reports wait for the hardware alarm report', () => {
+  const device = new AY303ZDevice();
+  report(device, 3, 10);
+  assert.equal(device.values.measure_soil_moisture, 10);
+  assert.equal(device.values.alarm_water, undefined);
+});
+
+test('AY-303Z threshold changes write the setting without overriding the hardware alarm', async () => {
+  const device = new AY303ZDevice();
+  const writes = [];
+  device.tuyaCluster = {
+    setDatapointValue: async (dp, value) => writes.push({ dp, value }),
+  };
+  report(device, 3, 50);
+  for (const [alarm, threshold] of [[true, 20], [false, 80]]) {
+    device.processDataPoint(106, 1, Buffer.from([Number(alarm)]));
+    await device.onSettings({
+      oldSettings: { soil_warning: 30 },
+      newSettings: { soil_warning: threshold },
+      changedKeys: ['soil_warning'],
+    });
+    assert.equal(device.values.alarm_water, alarm);
+  }
+  assert.deepEqual(writes, [{ dp: 110, value: 20 }, { dp: 110, value: 80 }]);
+});
+
+test('ZG-303Z retains its local alarm for soil reports and threshold changes', async () => {
+  const device = new ZG303ZDevice();
+  report(device, 107, 10);
+  assert.equal(device.values.alarm_water, true);
+  report(device, 107, 50);
+  assert.equal(device.values.alarm_water, false);
+  await device.onSettings({
+    oldSettings: { soil_warning: 30 },
+    newSettings: { soil_warning: 80 },
+    changedKeys: ['soil_warning'],
+  });
+  assert.equal(device.values.alarm_water, true);
+});
+
 test('AY-303Z settings use DP9 for Celsius and never write alarm DP106', async () => {
   const device = new AY303ZDevice();
   const writes = [];

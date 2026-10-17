@@ -10,5 +10,7 @@ module.exports = class AY303ZDevice extends ZG303ZDevice {
 
   protected datapointHandlers = AY303Z_DP_HANDLERS;
   protected writeDatapoints = AY303Z_DP_WRITE;
+  // DP106 is authoritative, including after soil reports or threshold changes.
+  protected deriveWaterAlarmFromSoilMoisture = false;
 
 };
