@@ -22,5 +22,8 @@
   },
   "1.0.7": {
     "en": "Add experimental AOYAN AY-303Z soil sensor support with device-specific alarm and temperature-unit datapoints."
+  },
+  "1.0.8": {
+    "en": "Add ZG-204ZX presence sensor support, improve Tuya settings communication and retry handling, and fix AY-303Z dry-soil alarm handling."
   }
 }
