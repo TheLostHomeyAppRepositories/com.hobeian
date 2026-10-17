@@ -24,14 +24,14 @@
     "xlarge": "/assets/images/xlarge.png"
   },
   "author": {
-    "name": "Are \u00c5rseth",
+    "name": "Are Årseth",
     "email": "are@arseth.org"
   },
   "brandColor": "#4A90E2",
   "contributors": {
     "developers": [
       {
-        "name": "Are \u00c5rseth",
+        "name": "Are Årseth",
         "email": "are@arseth.org"
       }
     ],
@@ -159,7 +159,8 @@
           "value": 5,
           "units": {
             "en": "m"
-          }
+          },
+          "step": 0.01
         },
         {
           "id": "motion_detection_sensitivity",
@@ -216,11 +217,12 @@
             "en": "Temperature Calibration"
           },
           "hint": {
-            "en": "Offset in \u00b0C applied by the sensor (-2.0 to +2.0). Takes effect on next report."
+            "en": "Offset in °C applied by the sensor (-2.0 to +2.0). Takes effect on next report."
           },
           "min": -2,
           "max": 2,
-          "value": 0
+          "value": 0,
+          "step": 0.1
         },
         {
           "id": "humidity_calibration",
@@ -325,7 +327,7 @@
             "en": "Temperature Calibration"
           },
           "hint": {
-            "en": "Offset in \u00b0C applied by the sensor (-2.0 to +2.0). Takes effect on next report."
+            "en": "Offset in °C applied by the sensor (-2.0 to +2.0). Takes effect on next report."
           },
           "min": -2,
           "max": 2,
@@ -639,7 +641,7 @@
             "en": "Temperature Calibration"
           },
           "hint": {
-            "en": "Offset in \u00b0C applied by the sensor (-2.0 to +2.0). Takes effect on next report."
+            "en": "Offset in °C applied by the sensor (-2.0 to +2.0). Takes effect on next report."
           },
           "min": -2,
           "max": 2,

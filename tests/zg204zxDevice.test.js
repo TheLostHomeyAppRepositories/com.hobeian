@@ -10,6 +10,7 @@ class FakeDevice {
     this.node = { receiveWhenIdle: false };
     this.settings = {};
     this.errors = [];
+    this.store = new Map();
     this.error = (error) => this.errors.push(error);
   }
 
@@ -17,6 +18,14 @@ class FakeDevice {
 
   getSetting(key) {
     return this.settings[key];
+  }
+
+  getStoreValue(key) {
+    return this.store.get(key);
+  }
+
+  async setStoreValue(key, value) {
+    this.store.set(key, value);
   }
 
   isFirstInit() {
@@ -163,4 +172,38 @@ test('a settings edit during a wake update remains queued for the next wake', as
   await device.onEndDeviceAnnounce();
   assert.equal(frames.length, 20);
   assert.deepEqual(frames[11].frame.subarray(5), Buffer.from([102, 2, 0, 4, 0, 0, 0, 75]));
+});
+
+test('queued settings survive restarts before a wake or after a failed apply', async (t) => {
+  t.mock.method(Date, 'now', () => 100000);
+  for (const failBeforeRestart of [false, true]) {
+    const device = new ZG204ZXDevice();
+    const original = fixture();
+    await device.onNodeInit({ zclNode: original.zclNode });
+    device.settings.fading_time = 45;
+    await device.onSettings({ oldSettings: {}, newSettings: device.settings, changedKeys: ['fading_time'] });
+    if (failBeforeRestart) {
+      original.endpoint.failAt = 2;
+      await device.onEndDeviceAnnounce();
+      assert.equal(original.frames.length, 2);
+    }
+
+    const restart = new ZG204ZXDevice();
+    restart.store = device.store;
+    restart.settings = device.settings;
+    const next = fixture();
+    await restart.onNodeInit({ zclNode: next.zclNode });
+    assert.equal(next.frames.length, 0);
+    await restart.onEndDeviceAnnounce();
+    assert.equal(next.frames.length, 10);
+    assert.deepEqual(next.frames[1].frame.subarray(5), Buffer.from([102, 2, 0, 4, 0, 0, 0, 45]));
+
+    const afterSuccess = new ZG204ZXDevice();
+    afterSuccess.store = restart.store;
+    afterSuccess.settings = restart.settings;
+    const last = fixture();
+    await afterSuccess.onNodeInit({ zclNode: last.zclNode });
+    await afterSuccess.onEndDeviceAnnounce();
+    assert.equal(last.frames.length, 0);
+  }
 });

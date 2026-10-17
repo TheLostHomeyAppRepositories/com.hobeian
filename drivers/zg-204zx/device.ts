@@ -20,16 +20,22 @@ import {
 import { DP_HANDLERS, DP_WRITE, DEFAULTS } from '../../lib/zg204zxDatapoints';
 
 const ZCL_READ_ATTRIBUTES = 0x00;
+const SETTINGS_REVISION_STORE_KEY = 'zg204zxSettingsRevision';
+const APPLIED_SETTINGS_REVISION_STORE_KEY = 'zg204zxAppliedSettingsRevision';
 
 module.exports = class ZG204ZXDevice extends ZigBeeDevice {
 
   private tuyaCluster: any = null;
   private pendingSettingsApply = false;
+  private settingsRevision = 0;
   private endpoint1: any = null;
   private lastWakeHandledAt = 0;
 
   async onNodeInit({ zclNode }: { zclNode: any }) {
     this.log('ZG-204ZX device initialized');
+    this.settingsRevision = this.getStoreValue(SETTINGS_REVISION_STORE_KEY) ?? 0;
+    const appliedRevision = this.getStoreValue(APPLIED_SETTINGS_REVISION_STORE_KEY) ?? 0;
+    this.pendingSettingsApply = this.settingsRevision !== appliedRevision;
 
     // This Tuya device reports presence, illuminance, temperature and humidity via
     // datapoints on 0xEF00, and exposes its configuration the same way.
@@ -363,6 +369,8 @@ module.exports = class ZG204ZXDevice extends ZigBeeDevice {
     if (isSleepy) {
       this.log('Device is sleepy - queueing settings for next wake-up');
       this.pendingSettingsApply = true;
+      this.settingsRevision += 1;
+      await this.setStoreValue(SETTINGS_REVISION_STORE_KEY, this.settingsRevision);
       return;
     }
 
@@ -470,9 +478,12 @@ module.exports = class ZG204ZXDevice extends ZigBeeDevice {
     if (this.pendingSettingsApply && this.tuyaCluster) {
       this.log('Applying pending user settings...');
       // Consume this update before awaiting; later edits can queue another one.
+      const revision = this.settingsRevision;
       this.pendingSettingsApply = false;
       try {
         await this.applyDeviceSettings();
+        // Keep the desired revision intact across crashes and concurrent edits.
+        await this.setStoreValue(APPLIED_SETTINGS_REVISION_STORE_KEY, revision);
       } catch (err) {
         this.pendingSettingsApply = true;
         this.error(err);
