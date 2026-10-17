@@ -469,10 +469,12 @@ module.exports = class ZG204ZXDevice extends ZigBeeDevice {
 
     if (this.pendingSettingsApply && this.tuyaCluster) {
       this.log('Applying pending user settings...');
+      // Consume this update before awaiting; later edits can queue another one.
+      this.pendingSettingsApply = false;
       try {
         await this.applyDeviceSettings();
-        this.pendingSettingsApply = false;
       } catch (err) {
+        this.pendingSettingsApply = true;
         this.error(err);
       }
     }

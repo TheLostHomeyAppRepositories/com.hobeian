@@ -123,3 +123,44 @@ test('failed sleepy settings are retried on the next wake and stop after success
   await device.onEndDeviceAnnounce();
   assert.equal(frames.length, 12);
 });
+
+test('a settings edit during a wake update remains queued for the next wake', async (t) => {
+  let now = 100000;
+  t.mock.method(Date, 'now', () => now);
+  const device = new ZG204ZXDevice();
+  const { frames, endpoint, zclNode } = fixture();
+  await device.onNodeInit({ zclNode });
+  device.settings.fading_time = 45;
+  await device.onSettings({ oldSettings: {}, newSettings: device.settings, changedKeys: ['fading_time'] });
+
+  let release;
+  let entered;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const started = new Promise((resolve) => {
+    entered = resolve;
+  });
+  const send = endpoint.sendFrame.bind(endpoint);
+  let pause = true;
+  endpoint.sendFrame = async (...args) => {
+    if (pause) {
+      pause = false;
+      entered();
+      await gate;
+    }
+    return send(...args);
+  };
+  const wake = device.onEndDeviceAnnounce();
+  await started;
+  device.settings.fading_time = 75;
+  await device.onSettings({ oldSettings: { fading_time: 45 }, newSettings: device.settings, changedKeys: ['fading_time'] });
+  release();
+  await wake;
+  assert.equal(frames.length, 10);
+  assert.deepEqual(frames[1].frame.subarray(5), Buffer.from([102, 2, 0, 4, 0, 0, 0, 45]));
+  now += 6000;
+  await device.onEndDeviceAnnounce();
+  assert.equal(frames.length, 20);
+  assert.deepEqual(frames[11].frame.subarray(5), Buffer.from([102, 2, 0, 4, 0, 0, 0, 75]));
+});
