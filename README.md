@@ -7,7 +7,7 @@ Adds support for Hobeian and compatible AOYAN Zigbee devices on Homey Pro (Homey
 | Device | Measurements and alarms |
 | --- | --- |
 | ZG-303Z Soil Sensor | Soil moisture, temperature, air humidity, battery, dry-soil alarm |
-| AY-303Z Soil Sensor (Experimental) | Soil moisture, temperature, air humidity, battery, dry-soil alarm |
+| AY-303Z Soil Sensor | Soil moisture, temperature, air humidity, battery, dry-soil alarm |
 | ZG-204ZX 24GHz Presence Sensor | Presence, illuminance, temperature, humidity, battery |
 | ZG-227Z Temperature & Humidity Sensor | Temperature, humidity, battery |
 | ZG-222Z Water Leak Sensor | Water leak, tamper, low-battery alarm, battery |
@@ -40,11 +40,11 @@ A battery-powered Zigbee soil moisture sensor with temperature and humidity sens
 - Power: 2x AAA batteries
 - Protocol: Tuya Zigbee (Cluster 0xEF00)
 
-### AY-303Z Soil Moisture Sensor (Experimental)
+### AY-303Z Soil Moisture Sensor
 
-AOYAN variant with soil moisture, temperature, air humidity, battery level, and dry-soil alarm. Select **AY-303Z Soil Sensor (Experimental)** when pairing. Manufacturer identifiers `AOYAN  ` (two trailing spaces) and `AOYAN` are accepted for model `AY-303Z`. This variant uses the sensor's DP 106 dry-soil alarm and DP 9 temperature unit. Soil-moisture reports do not override its alarm state.
+AOYAN variant with soil moisture, temperature, air humidity, battery level, and dry-soil alarm. Select **AY-303Z Soil Sensor** when pairing. Manufacturer identifiers `AOYAN  ` (two trailing spaces) and `AOYAN` are accepted for model `AY-303Z`. This variant uses the sensor's DP 106 dry-soil alarm and DP 9 temperature unit. Soil-moisture reports do not override its alarm state.
 
-A tester reports all three units working after resolving a Zigbee network pairing problem. Dry-soil alarm, calibration, and sampling settings still need explicit hardware confirmation, so support remains experimental.
+Theo reports all three units working after resolving a Zigbee network pairing problem. Dry-soil alarm, calibration, and sampling settings have not all been explicitly confirmed on hardware.
 
 ### ZG-204ZX 24GHz Presence Sensor
 
@@ -97,7 +97,12 @@ Reports water leaks, tamper status, low-battery alarms, and battery level. Uses 
 
 ## Changelog
 
-### Unreleased
+### 1.0.9
+
+- Remove the experimental label from AY-303Z support after successful testing on three units.
+- Refresh the app artwork and description to reflect supported Hobeian Zigbee sensors.
+
+### 1.0.8
 
 - Add ZG-204ZX presence, illuminance, temperature, humidity, and battery support.
 - Fix Tuya settings encoding and ZG-204ZX first-pair initialization.
@@ -122,7 +127,7 @@ Earlier changes are listed in [.homeychangelog.json](.homeychangelog.json) and [
 ## Releasing
 
 1. Merge the release changes into `main` and confirm the **Validate Homey App** workflow passes. Run `npm ci && npm test` for the exact code being released; the validation workflow does not run these tests.
-2. Run [Update Homey App Version](https://github.com/elrond1999/com.hobeian/actions/workflows/homey-app-version.yml) on `main`, choosing a version increment and entering the user-facing changelog. This updates the version, commits it, creates a tag, and publishes a GitHub release. The current manifest is 1.0.7, so a patch increment produces 1.0.8.
+2. Run [Update Homey App Version](https://github.com/elrond1999/com.hobeian/actions/workflows/homey-app-version.yml) on `main`, choosing a version increment and entering the user-facing changelog. This updates the version, commits it, creates a tag, and publishes a GitHub release.
 3. Check that the resulting version commit validates successfully before publishing.
 4. Run [Publish Homey App](https://github.com/elrond1999/com.hobeian/actions/workflows/homey-app-publish.yml) on the validated release ref. It uses the repository's `HOMEY_PAT` secret and links to the release in Homey Developer Tools.
 5. In Homey Developer Tools, release to **Test** first. Confirm pairing, readings, alarms, settings, and restart behavior on physical devices, including existing sensors affected by shared Tuya changes. Then submit for **Live** certification.

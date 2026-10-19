@@ -11,7 +11,7 @@
     "en": "Hobeian"
   },
   "description": {
-    "en": "Monitor your plants' soil moisture, temperature, and humidity with Hobeian Zigbee sensors."
+    "en": "Connect Hobeian sensors and the AOYAN AY-303Z for plant care, room presence, climate, and leak alerts."
   },
   "category": [
     "climate"
@@ -52,7 +52,7 @@
     {
       "id": "ay-303z",
       "name": {
-        "en": "AY-303Z Soil Sensor (Experimental)"
+        "en": "AY-303Z Soil Sensor"
       },
       "class": "sensor",
       "platforms": [
