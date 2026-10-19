@@ -25,5 +25,8 @@
   },
   "1.0.8": {
     "en": "Add ZG-204ZX presence sensor support, improve Tuya settings communication and retry handling, and fix AY-303Z dry-soil alarm handling."
+  },
+  "1.0.9": {
+    "en": "Remove the experimental label from AY-303Z support after successful testing on three units. Refresh the app artwork and listing description to reflect supported Hobeian Zigbee sensors."
   }
 }
