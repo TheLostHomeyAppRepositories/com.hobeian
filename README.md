@@ -22,4 +22,4 @@ Requires Homey Pro with Homey 12.4.0 or newer.
 
 [Development and testing notes](docs/DEVELOPMENT.md) include device settings, technical details, hardware testing status, and release instructions.
 
-See [CHANGELOG.md](CHANGELOG.md) for release history and upcoming changes.
+See the [changelog](CHANGELOG.md) for release history and upcoming changes.
