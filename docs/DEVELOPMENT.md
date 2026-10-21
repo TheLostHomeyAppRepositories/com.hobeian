@@ -95,36 +95,9 @@ Reports water leaks, tamper status, low-battery alarms, and battery level. Uses 
 
 [Open an issue](https://github.com/elrond1999/com.hobeian/issues) with the device model, app and Homey versions, pairing outcome, and the readings or settings affected. For experimental drivers, include whether alarms and settings work on the physical device. Battery-powered sensors may apply settings only when they next wake up.
 
-## Changelog
-
-### 1.0.9
-
-- Remove the experimental label from AY-303Z support after successful testing on three units.
-- Refresh the app artwork and description to reflect supported Hobeian Zigbee sensors.
-
-### 1.0.8
-
-- Add ZG-204ZX presence, illuminance, temperature, humidity, and battery support.
-- Fix Tuya settings encoding and ZG-204ZX first-pair initialization.
-- Retry ZG-204ZX settings after failed writes and retain pending changes across restarts and concurrent edits.
-- Keep AY-303Z dry-soil alarms controlled by the sensor.
-- Credit the ZG-204ZX contribution in the app's developer metadata.
-
-### 1.0.7
-
-- Add experimental AOYAN AY-303Z soil sensor support.
-
-### 1.0.6
-
-- Add ZG-222Z water leak sensor support.
-
-### 1.0.5
-
-- Add experimental ZG-227Z temperature and humidity sensor support.
-
-Earlier changes are listed in [.homeychangelog.json](../.homeychangelog.json) and [GitHub releases](https://github.com/elrond1999/com.hobeian/releases).
-
 ## Releasing
+
+Maintain the human-readable release history in [CHANGELOG.md](../CHANGELOG.md). Add notable changes under `Unreleased`, grouped by `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, or `Security` as needed. When preparing a release, move those entries into a dated version section and update the comparison links. Use the same user-facing summary for the Homey version workflow, which updates `.homeychangelog.json` for the App Store.
 
 1. Merge the release changes into `main` and confirm the **Validate Homey App** workflow passes. Run `npm ci && npm test` for the exact code being released; the validation workflow does not run these tests.
 2. Run [Update Homey App Version](https://github.com/elrond1999/com.hobeian/actions/workflows/homey-app-version.yml) on `main`, choosing a version increment and entering the user-facing changelog. This updates the version, commits it, creates a tag, and publishes a GitHub release.

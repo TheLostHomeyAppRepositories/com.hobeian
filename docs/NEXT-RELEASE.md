@@ -4,6 +4,7 @@ Homey approved version 1.0.9 and requested these App Store improvements. Prepare
 
 - [x] Rewrite README.txt to introduce the app, supported devices, pairing, and Homey Flow uses.
 - [x] Make README.md user-facing and move implementation details and hardware testing status to DEVELOPMENT.md.
+- [x] Maintain release history in a dedicated Keep a Changelog-style CHANGELOG.md.
 - [x] Replace the ZG-222Z and ZG-227Z driver images with model-specific product photos on transparent backgrounds.
 
 ## Device photo preparation

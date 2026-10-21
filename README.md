@@ -20,4 +20,6 @@ Requires Homey Pro with Homey 12.4.0 or newer.
 
 [Report an issue](https://github.com/elrond1999/com.hobeian/issues) with your device model, app and Homey versions, and a description of the problem.
 
-[Development and testing notes](docs/DEVELOPMENT.md) include device settings, technical details, hardware testing status, changelog, and release instructions.
+[Development and testing notes](docs/DEVELOPMENT.md) include device settings, technical details, hardware testing status, and release instructions.
+
+See [CHANGELOG.md](CHANGELOG.md) for release history and upcoming changes.
